@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#071b5c">
+<title>100 Mexicanos Dijeron</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100vh;font-family:Arial,sans-serif;color:#fff;background:radial-gradient(circle at 50% 0,#2870e8 0,#102d91 45%,#030a25 100%);padding:12px}
+.app{max-width:900px;margin:auto}
+header{text-align:center}
+.logo{display:inline-block;background:#e3192f;border:4px solid #ffd400;border-radius:18px;padding:9px 15px;box-shadow:0 6px 0 #720817,0 12px 30px #0008}
+.logo small{display:block;font-size:10px;font-weight:900;letter-spacing:2px}
+.logo h1{margin:3px 0 0;font-size:clamp(28px,8vw,55px);line-height:.9;text-shadow:3px 3px #720817}
+.sub{margin:10px 0 13px;font-weight:900;color:#dce7ff}
+.card{background:#07133aeb;border:3px solid #ffd400;border-radius:22px;padding:13px;box-shadow:0 14px 45px #0008}
+.question{background:linear-gradient(135deg,#1b70e8,#2639a9);border:3px solid white;border-radius:16px;padding:18px 13px;text-align:center;font-size:clamp(20px,5vw,31px);font-weight:900;min-height:95px;display:flex;align-items:center;justify-content:center}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}
+.answer{min-height:78px;border:2px solid #7092e5;border-radius:12px;background:linear-gradient(#173d92,#0d255d);display:flex;align-items:center;overflow:hidden;cursor:pointer;color:#fff;font-weight:900;text-align:left;padding:0}
+.answer:active{transform:scale(.98)}
+.answer.correct{background:linear-gradient(#ffd92e,#b97700);border-color:#fff;color:#111}
+.answer.wrong{background:linear-gradient(#e3192f,#760917);border-color:#fff;color:#fff}
+.answer.disabled{cursor:default}
+.letter{width:48px;height:100%;min-height:76px;display:flex;align-items:center;justify-content:center;background:#061640;border-right:2px solid #7092e5;font-size:20px}
+.correct .letter{background:#fff;color:#111;border-color:#9c7300}
+.txt{flex:1;padding:9px;font-size:16px}
+.feedback{text-align:center;min-height:26px;color:#ffd400;font-weight:900}
+.meme{text-align:center;min-height:30px;font-size:18px;font-weight:900}
+.scoreline{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:8px 0}
+.badge{background:#02081e;border:2px solid #ffd400;border-radius:999px;padding:8px 16px;font-size:18px;font-weight:900}
+.controls{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+button.ctrl{border:0;border-radius:11px;padding:13px 8px;font-size:15px;font-weight:900;background:#ffd400;color:#111;box-shadow:0 3px 0 #a67600;cursor:pointer}
+button.ctrl:active{transform:translateY(2px);box-shadow:none}
+.blue{background:#2878ef!important;color:white!important;box-shadow:0 3px 0 #123f8d!important}
+.red{background:#e3192f!important;color:white!important;box-shadow:0 3px 0 #770b18!important}
+.white{background:white!important}
+.result{display:none;text-align:center;background:#0b2d77;border:2px solid #ffd400;border-radius:15px;padding:14px;margin:10px 0}
+.result h2{margin:0 0 5px;color:#ffd400}
+.counter{text-align:center;color:#b8c8f5;font-size:12px;margin-top:11px}
+@media(max-width:600px){.answers{grid-template-columns:1fr}.answer{min-height:67px}.letter{min-height:65px}.txt{font-size:15px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<div class="logo"><small>THE SURVEY GAME</small><h1>100 MEXICANS<br>DIJERON</h1></div>
+<div class="sub">🇲🇽 ENGLISH QUIZ • MULTIPLE CHOICE 🇺🇸</div>
+</header>
+<section class="card">
+<div id="question" class="question"></div>
+<div id="feedback" class="feedback"></div>
+<div id="meme" class="meme"></div>
+<div id="answers" class="answers"></div>
+<div class="scoreline">
+<div class="badge">🏆 SCORE: <span id="score">0</span>/10</div>
+<div class="badge">📚 QUESTION: <span id="number">1</span>/10</div>
+</div>
+<div id="result" class="result"><h2>🎉 QUIZ COMPLETE!</h2><div id="final"></div></div>
+<div class="controls">
+<button class="ctrl" onclick="nextQuestion()">➡️ NEXT</button>
+<button class="ctrl blue" onclick="revealCorrect()">👀 SHOW CORRECT</button>
+<button class="ctrl red" onclick="restart()">🔄 RESTART</button>
+<button class="ctrl white" onclick="toggleSound()" id="soundBtn">🔊 SOUND</button>
+</div>
+<div class="counter">Choose an option • Only one answer is correct</div>
+</section>
+</div>
+
+<script>
+const questions=[
+{q:"What do you do in the morning?",a:["I dance pizza","I wake up at 6 am","I swimming","I go to sleep at 3 pm"],c:1},
+{q:"Where does she work?",a:["She works in a park","She works in a factory","She works in a restaurant","She works in a school"],c:1},
+{q:"Did you eat breakfast?",a:["Yes, I ate eggs","Yes, I eated eggs","Yes, I eating","Yes, I eat breakfast tomorrow"],c:0},
+{q:"What are you doing now?",a:["I am study English","I am studying English","I is studying English","I studied English yesterday"],c:1},
+{q:"Can you play soccer?",a:["Yes, I can play soccer","Yes, I can playing soccer","Yes, I cans play soccer","Yes, I played soccer tomorrow"],c:0},
+{q:"What will you do tomorrow?",a:["I will go to school","I will goes to school","I will going to school","I went to school yesterday"],c:0},
+{q:"Do you like music?",a:["Yes, I like to listen to music","Yes, I likes music","Yes, I liking music","Yes, I listened to music yesterday"],c:0},
+{q:"Where did he go?",a:["He goed to the store","He went to the store","He go to the store","He is at the store tomorrow"],c:1},
+{q:"Are you cooking dinner?",a:["No, I am not cooking","No, I am no cooking","No, I not am","No, I cooked dinner tomorrow"],c:0},
+{q:"What have you learned today?",a:["I have learned new verbs","I have learn new verbs","I has learned new verbs","I learned new verbs tomorrow"],c:0}
+];
+const good=["🗿 ¡The teacher is proud of you!","🔥 You got it!","🧠 +100 IQ unlocked.","👑 English mastered!","😂 You really know it!"];
+const bad=["💀 The test: seriously?","😂 Our brain signal is gone.","🗿 The teacher nomás se quedó mirando...","😭 That answer was pure courage.","📚 Time to open the book, champion."];
+let current=0,score=0,answered=false,sound=true,audio=null;
+
+function $(id){return document.getElementById(id)}
+function render(){
+ answered=false;
+ $("question").textContent=questions[current].q;
+ $("number").textContent=current+1;
+ $("score").textContent=score;
+ $("feedback").textContent="";
+ $("meme").textContent="";
+ $("result").style.display="none";
+ const box=$("answers");box.innerHTML="";
+ questions[current].a.forEach((answer,i)=>{
+   const b=document.createElement("button");
+   b.className="answer";
+   b.innerHTML='<span class="letter">'+String.fromCharCode(65+i)+'</span><span class="txt">'+answer+'</span>';
+   b.onclick=()=>choose(i,b);
+   box.appendChild(b);
+ });
+}
+function choose(i,b){
+ if(answered)return;
+ answered=true;
+ const correct=questions[current].c;
+ const buttons=[...$("answers").children];
+ buttons.forEach(x=>x.classList.add("disabled"));
+ if(i===correct){
+   b.classList.add("correct");
+   score++;
+   $("score").textContent=score;
+   $("feedback").textContent="✅ ¡CORRECT!";
+   $("meme").textContent=good[Math.floor(Math.random()*good.length)];
+   beep("good");
+ }else{
+   b.classList.add("wrong");
+   buttons[correct].classList.add("correct");
+   $("feedback").textContent="❌ ¡INCORRECT!";
+   $("meme").textContent=bad[Math.floor(Math.random()*bad.length)];
+   beep("bad");
+ }
+ if(current===questions.length-1)setTimeout(showResult,500);
+}
+function revealCorrect(){
+ if(answered)return;
+ answered=true;
+ const correct=questions[current].c;
+ const buttons=[...$("answers").children];
+ buttons.forEach(x=>x.classList.add("disabled"));
+ buttons[correct].classList.add("correct");
+ $("feedback").textContent="👀 THIS IS THE CORRECT ANSWER";
+ $("meme").textContent="🗿 The teacher te acaba de dar una ayudita...";
+ beep("good");
+}
+function nextQuestion(){
+ if(current<questions.length-1){current++;render();beep("next")}else showResult();
+}
+function showResult(){
+ $("result").style.display="block";
+ $("final").innerHTML="Your final score is <b>"+score+"/10</b><br>"+(score===10?"🏆 PERFECT SCORE!":score>=7?"🔥 GREAT JOB!":score>=5?"😂 You barely passed!":"💀 English wants a rematch...");
+}
+function restart(){current=0;score=0;render();beep("next")}
+function toggleSound(){sound=!sound;$("soundBtn").textContent=sound?"🔊 SOUND":"🔇 MUTE";if(sound)beep("next")}
+function beep(type){
+ if(!sound)return;
+ try{
+  audio=audio||new(window.AudioContext||window.webkitAudioContext)();
+  if(audio.state==="suspended")audio.resume();
+  const o=audio.createOscillator(),g=audio.createGain(),now=audio.currentTime;
+  const notes=type==="bad"?[180,130]:type==="good"?[520,660,820]:[330,440];
+  o.type="square";
+  notes.forEach((n,i)=>o.frequency.setValueAtTime(n,now+i*.09));
+  g.gain.setValueAtTime(.0001,now);
+  g.gain.exponentialRampToValueAtTime(.1,now+.02);
+  g.gain.exponentialRampToValueAtTime(.0001,now+notes.length*.09+.08);
+  o.connect(g);g.connect(audio.destination);o.start(now);o.stop(now+notes.length*.09+.1);
+ }catch(e){}
+}
+render();
+</script>
+</body>
+</html>
